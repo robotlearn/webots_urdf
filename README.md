@@ -25,3 +25,10 @@ You can find the sources of these URDF files here:
   - pr2 robot: https://github.com/PR2/pr2_common/tree/kinetic-devel/pr2_description  
   - motoman robot: https://github.com/ros-industrial/motoman/tree/kinetic-devel/motoman_sia20d_support
   - kinova robot: https://github.com/Kinovarobotics/kinova-ros/tree/kinetic/kinova_description
+
+
+## TODO
+
+- [ ] comment the code and make it more pythonic
+- [ ] parse proto file and write urdf file
+- [ ] test proto2urdf parser
