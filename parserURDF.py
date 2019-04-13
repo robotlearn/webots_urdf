@@ -1,4 +1,5 @@
-"""Import modules."""
+"""URDF parser"""
+
 import os
 import sys
 import struct
@@ -14,7 +15,7 @@ except ImportError as e:
         sys.stderr.write("pip install pillow\n")
     raise e
 
-from collada import Collada
+from collada import Collada  # for .dae files
 import numbers
 
 
@@ -22,11 +23,11 @@ counter = 0
 robotName = ''  # to pass from external
 
 
-class Trimesh():
+class Trimesh(object):
     """Define triangular mesh object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.coord = []  # list of coordinate points
         self.coordIndex = []  # list of index of points
         self.texCoord = []  # list of coordinate points for texture
@@ -35,11 +36,11 @@ class Trimesh():
         self.normalIndex = []  # list of index of normals
 
 
-class Inertia():
+class Inertia(object):
     """Define inertia object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.position = [0.0, 0.0, 0.0]
         self.rotation = [1.0, 0.0, 0.0, 0.0]
         self.mass = 1.0
@@ -51,38 +52,38 @@ class Inertia():
         self.izz = 1.0
 
 
-class Box():
+class Box(object):
     """Define box object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.x = 0.0
         self.y = 0.0
         self.z = 0.0
 
 
-class Cylinder():
+class Cylinder(object):
     """Define cylinder object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.radius = 0.0
         self.length = 0.0
 
 
-class Sphere():
+class Sphere(object):
     """Define sphere object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.radius = 0.0
 
 
-class Geometry():
+class Geometry(object):
     """Define geometry object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.box = Box()
         self.cylinder = Cylinder()
         self.sphere = Sphere()
@@ -90,24 +91,24 @@ class Geometry():
         self.scale = [1.0, 1.0, 1.0]
 
 
-class Color():
+class Color(object):
     """Define color object."""
 
     def __init__(self, red=0.5, green=0.0, blue=0.0, alpha=1.0):
-        """Initializatization."""
+        """Initialization."""
         self.red = red
         self.green = green
         self.blue = blue
         self.alpha = alpha
 
 
-class Material():
+class Material(object):
     """Define material object."""
 
     namedMaterial = {}
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.emission = Color(0.0, 0.0, 0.0, 1.0)
         self.ambient = Color(0.0, 0.0, 0.0, 0.0)
         self.diffuse = Color(0.5, 0.5, 0.5, 1.0)
@@ -129,83 +130,83 @@ class Material():
             Material.namedMaterial[node.getAttribute('name')] = self
 
 
-class Visual():
+class Visual(object):
     """Define visual object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.position = [0.0, 0.0, 0.0]
         self.rotation = [1.0, 0.0, 0.0, 0.0]
         self.geometry = Geometry()
         self.material = Material()
 
 
-class Collision():
+class Collision(object):
     """Define collision object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.position = [0.0, 0.0, 0.0]
         self.rotation = [1.0, 0.0, 0.0, 0.0]
         self.geometry = Geometry()
 
 
-class Calibration():
+class Calibration(object):
     """Define calibration object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.limit = 0.0
         self.rising = True
 
 
-class Dynamics():
+class Dynamics(object):
     """Define dynamics object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.damping = 0.0
         self.friction = 0.0
 
 
-class Limit():
+class Limit(object):
     """Define joint limit object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.lower = 0.0
         self.upper = 0.0
         self.effort = 0.0
         self.velocity = 0.0
 
 
-class Safety():
+class Safety(object):
     """Define joint safety object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.lower = 0.0
         self.upper = 0.0
         self.kPosition = 0.0
         self.kVelocity = 0.0
 
 
-class Link():
+class Link(object):
     """Define link object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.name = 'default'
         self.inertia = Inertia()
         self.visual = []
         self.collision = []
 
 
-class Joint():
+class Joint(object):
     """Define joint object."""
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.name = 'default'
         self.type = 'default'
         self.position = [0.0, 0.0, 0.0]
@@ -219,13 +220,13 @@ class Joint():
         self.safety = Safety()
 
 
-class IMU():
+class IMU(object):
     """Define an IMU sensor."""
 
     list = []
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.name = 'imu'
         self.gaussianNoise = 0
         self.parentLink = None
@@ -250,13 +251,13 @@ class IMU():
         file.write(indentationLevel * indent + '}\n')
 
 
-class Camera():
+class Camera(object):
     """Define a camera sensor."""
 
     list = []
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.name = 'camera'
         self.fov = None
         self.width = None
@@ -279,13 +280,13 @@ class Camera():
         file.write(indentationLevel * indent + '}\n')
 
 
-class Lidar():
+class Lidar(object):
     """Define a lidar sensor."""
 
     list = []
 
     def __init__(self):
-        """Initializatization."""
+        """Initialization."""
         self.name = 'lidar'
         self.fov = None
         self.verticalFieldOfView = None
@@ -340,14 +341,23 @@ def colorVector2Instance(cv, alpha_last=True):
 
 
 def getRobotName(node):
-    """Parse robot name."""
+    """Parse robot name.
+
+    Args:
+        node (DOM): XML node.
+    """
     name = node.getAttribute('name')
     print('Robot name: ' + name)
     return name
 
 
 def hasElement(node, element):
-    """Check if exlement existing in a tag."""
+    """Check if exlement existing in a tag.
+
+    Args:
+        node (DOM): XML node.
+        element (str): tag name.
+    """
     if node.getElementsByTagName(element).length > 0:
         return True
     else:
@@ -355,13 +365,18 @@ def hasElement(node, element):
 
 
 def getSTLMesh(filename, node):
-    """Read stl file."""
+    """Read stl file.
+
+    Args:
+        filename (str): path to the STL file.
+        node (Visual): visual instance.
+    """
     stlFile = open(filename, 'rb')
-    stlFile.read(80)
-    vertex1 = []
-    vertex2 = []
-    vertex3 = []
+    stlFile.read(80)  # read first 80 characters
+
+    vertex1, vertex2, vertex3 = [], [], []
     numTriangles = struct.unpack("@i", stlFile.read(4))[0]
+
     struct.unpack("<3f", stlFile.read(12))
     a = struct.unpack("<3f", stlFile.read(12))
     vertex1.append(a)
@@ -370,15 +385,21 @@ def getSTLMesh(filename, node):
     c = struct.unpack("<3f", stlFile.read(12))
     vertex3.append(c)
     struct.unpack("H", stlFile.read(2))
+
+    # get reference to trimesh object and first coordinates
     trimesh = node.geometry.trimesh
     trimesh.coord.append(vertex1[0])
     trimesh.coord.append(vertex2[0])
     trimesh.coord.append(vertex3[0])
+
+    # for each triangle
     for i in range(1, numTriangles):
+
+        # add each vertex coordinate
         struct.unpack("<3f", stlFile.read(12))
         a = struct.unpack("<3f", stlFile.read(12))
         vertex1.append(a)
-        if trimesh.coord.count(a) == 0:
+        if trimesh.coord.count(a) == 0:  # if no occurence of 'a', add it to the coordinates
             trimesh.coord.append(a)
         b = struct.unpack("<3f", stlFile.read(12))
         vertex2.append(b)
@@ -389,6 +410,8 @@ def getSTLMesh(filename, node):
         if trimesh.coord.count(c) == 0:
             trimesh.coord.append(c)
         struct.unpack("H", stlFile.read(2))
+
+        # add coordinate indices
         trimesh.coordIndex.append([trimesh.coord.index(vertex1[i]),
                                    trimesh.coord.index(vertex2[i]),
                                    trimesh.coord.index(vertex3[i])])
@@ -397,7 +420,13 @@ def getSTLMesh(filename, node):
 
 
 def getColladaMesh(filename, node, link):
-    """Read collada file."""
+    """Read collada file.
+
+    Args:
+        filename (str): path to the Collada (.dae) file.
+        node (DOM): XML node.
+        link (Link): link instance.
+    """
     colladaMesh = Collada(filename)
     if hasattr(node, 'material') and node.material:
         for geometry in list(colladaMesh.scene.objects('geometry')):
@@ -476,7 +505,11 @@ def getColladaMesh(filename, node, link):
 
 
 def getPosition(node):
-    """Read position of a phsical or visual object."""
+    """Read position of a phsical or visual object.
+
+    Args:
+        node (DOM): XML node.
+    """
     position = [0.0, 0.0, 0.0]
     positionString = node.getElementsByTagName('origin')[0].getAttribute('xyz').split()
     position[0] = float(positionString[0])
@@ -486,7 +519,12 @@ def getPosition(node):
 
 
 def getRotation(node, isCylinder=False):
-    """Read rotation of a phsical or visual object."""
+    """Read rotation of a phsical or visual object.
+
+    Args:
+        node (DOM): XML node.
+        isCylinder (bool): if True, we have a cylinder.
+    """
     rotation = [0.0, 0.0, 0.0]
     if hasElement(node, 'origin'):
         orientationString = node.getElementsByTagName('origin')[0].getAttribute('rpy').split()
@@ -500,7 +538,11 @@ def getRotation(node, isCylinder=False):
 
 
 def getInertia(node):
-    """Parse inertia of a link."""
+    """Parse inertia of a link.
+
+    Args:
+        node (DOM): XML node.
+    """
     inertia = Inertia()
     inertialElement = node.getElementsByTagName('inertial')[0]
     if hasElement(inertialElement, 'origin'):
@@ -522,10 +564,19 @@ def getInertia(node):
 
 
 def getVisual(link, node):
-    """Parse visual data of a link."""
+    """Parse visual data of a link.
+
+    Args:
+        link (Link): link object.
+        node (DOM): xml node.
+    """
+
     for index in range(0, len(node.getElementsByTagName('visual'))):
+
+        # create visual object
         visual = Visual()
         visualElement = node.getElementsByTagName('visual')[index]
+
         if hasElement(visualElement, 'origin'):
             if visualElement.getElementsByTagName('origin')[0].getAttribute('xyz'):
                 visual.position = getPosition(visualElement)
@@ -578,18 +629,25 @@ def getVisual(link, node):
                                     visual.material.texture = ""
                                     print('failed to open ' + os.path.join(dirname, filename))
 
+        # box
         if hasElement(geometryElement, 'box'):
             visual.geometry.box.x = float(geometryElement.getElementsByTagName('box')[0].getAttribute('size').split()[0])
             visual.geometry.box.y = float(geometryElement.getElementsByTagName('box')[0].getAttribute('size').split()[1])
             visual.geometry.box.z = float(geometryElement.getElementsByTagName('box')[0].getAttribute('size').split()[2])
             link.visual.append(visual)
+
+        # cylinder
         elif hasElement(geometryElement, 'cylinder'):
             visual.geometry.cylinder.radius = float(geometryElement.getElementsByTagName('cylinder')[0].getAttribute('radius'))
             visual.geometry.cylinder.length = float(geometryElement.getElementsByTagName('cylinder')[0].getAttribute('length'))
             link.visual.append(visual)
+
+        # sphere
         elif hasElement(geometryElement, 'sphere'):
             visual.geometry.sphere.radius = float(geometryElement.getElementsByTagName('sphere')[0].getAttribute('radius'))
             link.visual.append(visual)
+
+        # create mesh
         elif hasElement(geometryElement, 'mesh'):
             meshfile = geometryElement.getElementsByTagName('mesh')[0].getAttribute('filename')
             # hack for gazebo mesh database
@@ -601,15 +659,24 @@ def getVisual(link, node):
                 visual.geometry.scale[0] = float(meshScale[0])
                 visual.geometry.scale[1] = float(meshScale[1])
                 visual.geometry.scale[2] = float(meshScale[2])
+
+            # Collada file
             if os.path.splitext(meshfile)[1].lower() == '.dae':
                 getColladaMesh(meshfile, visual, link)
+
+            # STL file
             elif os.path.splitext(meshfile)[1].lower() == '.stl':
                 visual = getSTLMesh(meshfile, visual)
                 link.visual.append(visual)
 
 
 def getCollision(link, node):
-    """Parse collision of a link."""
+    """Parse collision of a link.
+
+    Args:
+        link (Link): Link instance.
+        node (DOM): XML node.
+    """
     for index in range(0, len(node.getElementsByTagName('collision'))):
         collision = Collision()
         collisionElement = node.getElementsByTagName('collision')[index]
@@ -656,7 +723,11 @@ def getCollision(link, node):
 
 
 def getAxis(node):
-    """Parse rotation axis of a joint."""
+    """Parse rotation axis of a joint.
+
+    Args:
+        node (DOM): XML node.
+    """
     axis = [0.0, 0.0, 0.0]
     axisElement = node.getElementsByTagName('axis')[0].getAttribute('xyz').split()
     axis[0] = float(axisElement[0])
@@ -666,7 +737,11 @@ def getAxis(node):
 
 
 def getCalibration(node):
-    """Get the URDF calibration tag."""
+    """Get the URDF calibration tag.
+
+    Args:
+        node (DOM): XML node.
+    """
     calibration = Calibration()
     calibrationElement = node.getElementsByTagName('calibration')[0]
     if hasElement(calibrationElement, 'rising'):
@@ -679,7 +754,11 @@ def getCalibration(node):
 
 
 def getDynamics(node):
-    """Parse dynamics parameters of a joint."""
+    """Parse dynamics parameters of a joint.
+
+    Args:
+        node (DOM): XML node.
+    """
     dynamics = Dynamics()
     dynamicsElement = node.getElementsByTagName('dynamics')[0]
     if dynamicsElement.getAttribute('damping'):
@@ -690,7 +769,11 @@ def getDynamics(node):
 
 
 def getLimit(node):
-    """Get limits of a joint."""
+    """Get limits of a joint.
+
+    Args:
+        node (DOM): XML node.
+    """
     limit = Limit()
     limitElement = node.getElementsByTagName('limit')[0]
     if limitElement.getAttribute('lower'):
@@ -703,7 +786,11 @@ def getLimit(node):
 
 
 def getSafety(node):
-    """Get safety controller of a joint."""
+    """Get safety controller of a joint.
+
+    Args:
+        node (DOM): XML node.
+    """
     safety = Safety()
     if node.getElementsByTagName('safety_controller')[0].getAttribute('soft_lower_limit'):
         safety.lower = float(node.getElementsByTagName('safety_controller')[0].getAttribute('soft_lower_limit'))
@@ -716,20 +803,40 @@ def getSafety(node):
 
 
 def getLink(node):
-    """Parse a link."""
+    """Parse a link.
+
+    Args:
+        node (DOM): XML node.
+    """
+
+    # create link object
     link = Link()
     link.name = node.getAttribute('name')
+
+    # set inertia
     if hasElement(node, 'inertial'):
         link.inertia = getInertia(node)
+
+    # set visual
     if hasElement(node, 'visual'):
         getVisual(link, node)
+
+    # set collision
     if hasElement(node, 'collision'):
         getCollision(link, node)
+
+    # return the created link object
     return link
 
 
 def getJoint(node):
-    """Parse a joint."""
+    """Parse a joint.
+
+    Args:
+        node (DOM): XML node.
+    """
+
+    # create joint object
     joint = Joint()
     joint.name = node.getAttribute('name')
     joint.type = node.getAttribute('type')
@@ -750,23 +857,25 @@ def getJoint(node):
         joint.limit = getLimit(node)
     if hasElement(node, 'safety_controller'):
         joint.safety = getSafety(node)
+
+    # return joint
     return joint
 
 
-def isRootLink(link, childList):
+def isRootLink(link, children):
     """Check if a link is root link."""
-    for child in childList:
+    for child in children:
         if link == child:
             return False
     return True
 
 
-def parseGazeboElement(element, parentLink, linkList):
+def parseGazeboElement(element, parents, links):
     """Parse a Gazebo element."""
     for plugin in element.getElementsByTagName('plugin'):
         if plugin.hasAttribute('filename') and plugin.getAttribute('filename').startswith('libgazebo_ros_imu'):
             imu = IMU()
-            imu.parentLink = parentLink
+            imu.parentLink = parents
             if hasElement(plugin, 'topicName'):
                 imu.name = plugin.getElementsByTagName('topicName')[0].firstChild.nodeValue
             if hasElement(plugin, 'gaussianNoise'):
@@ -776,8 +885,8 @@ def parseGazeboElement(element, parentLink, linkList):
         sensorElement = element.getElementsByTagName('sensor')[0]
         if sensorElement.getAttribute('type') == 'camera':
             camera = Camera()
-            camera.parentLink = parentLink
-            if element.hasAttribute('reference') and element.getAttribute('reference') in linkList:
+            camera.parentLink = parents
+            if element.hasAttribute('reference') and element.getAttribute('reference') in links:
                 camera.parentLink = element.getAttribute('reference')
             camera.name = sensorElement.getAttribute('name')
             if hasElement(sensorElement, 'camera'):
@@ -799,8 +908,8 @@ def parseGazeboElement(element, parentLink, linkList):
             Camera.list.append(camera)
         elif sensorElement.getAttribute('type') == 'ray':
             lidar = Lidar()
-            lidar.parentLink = parentLink
-            if element.hasAttribute('reference') and element.getAttribute('reference') in linkList:
+            lidar.parentLink = parents
+            if element.hasAttribute('reference') and element.getAttribute('reference') in links:
                 lidar.parentLink = element.getAttribute('reference')
             lidar.name = sensorElement.getAttribute('name')
             if hasElement(sensorElement, 'ray'):

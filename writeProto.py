@@ -1,18 +1,18 @@
-"""Import modules."""
+"""Write proto file."""
 
 import math
 import math_utils
 import numpy as np
 
 
-class RGB():
+class RGB(object):
     """RGB color object."""
 
-    def __init__(self):
+    def __init__(self, red=0.5, green=0.5, blue=0.5):
         """Initialization."""
-        self.red = 0.5
-        self.green = 0.5
-        self.blue = 0.5
+        self.red = red
+        self.green = green
+        self.blue = blue
 
 
 # ref: https://marcodiiga.github.io/rgba-to-rgb-conversion
@@ -28,18 +28,29 @@ def RGBA2RGB(RGBA_color, RGB_background=RGB()):
     return new_color
 
 
-def header(proto, srcFile, robotName):
-    """Specify VRML file header."""
+def header(proto, src_file, robot_name):
+    """Specify VRML file header.
+
+    Args:
+        proto (file): proto file.
+        src_file (str): URDF source file.
+        robot_name (str): name of the robot.
+    """
     proto.write('#VRML_SIM R2019a utf8\n')
     proto.write('# license: Apache License 2.0\n')
     proto.write('# license url: http://www.apache.org/licenses/LICENSE-2.0\n')
-    proto.write('# This is a proto file for Webots for the ' + robotName + '\n')
-    proto.write('# Extracted from: ' + srcFile + '\n\n')
+    proto.write('# This is a proto file for Webots for the ' + robot_name + '\n')
+    proto.write('# Extracted from: ' + src_file + '\n\n')
 
 
-def declaration(proto, robotName):
-    """Prototype declaration."""
-    proto.write('PROTO ' + robotName + ' [\n')
+def declaration(proto, robot_name):
+    """Prototype declaration.
+
+    Args:
+        proto (file): proto file to write information in.
+        robot_name (str): name of the robot.
+    """
+    proto.write('PROTO ' + robot_name + ' [\n')
     proto.write('  field  SFVec3f     translation  0 0 0\n')
     proto.write('  field  SFRotation  rotation     0 1 0 0\n')
     proto.write('  field  SFString    controller   "void"\n')
@@ -47,12 +58,32 @@ def declaration(proto, robotName):
     proto.write('{\n')
 
 
-def URDFLink(proto, link, level, parentList, childList, linkList, jointList, sensorList,
+def URDFLink(proto, link, level, parents, children, links, joints, sensors,
              jointPosition=[0.0, 0.0, 0.0], jointRotation=[1.0, 0.0, 0.0, 0.0],
              boxCollision=False, normal=False, dummy=False, robot=False, endpoint=False):
-    """Write a link iteratively."""
+    """
+    Write a link (and joints) iteratively.
+
+    Args:
+        proto (file): proto file to write in.
+        link (Link): current link that is being considered.
+        level (int): level in the tree.
+        parents (list of str): for each joint in :attr:`joints`, its parent joint's name.
+        children (list of str): for each joint in :attr:`joints`, its child joint's name.
+        links (list of Link): list of link objects.
+        joints (list of Joint): list of joint objects.
+        sensors (list of IMU/Camera/Lidar): list of sensor objects.
+        jointPosition (list of 3 float): joint position
+        jointRotation (list of 4 float): joint orientation expressed as a quaternion (w,x,y,z)
+        boxCollision (bool): If True, the bounding objects are approximated using boxes.
+        normal (bool): If True, the normals are exported if present in the URDF definition.
+        dummy (bool): If True, we have a dummy link (which are often used in URDF files to create a frame).
+        robot (bool): If True, we have the root link, else we have other links.
+        endpoint (bool): If True, it is an end point.
+    """
     indent = '  '
     haveChild = False
+
     if robot:
         proto.write(level * indent + 'Robot {\n')
         proto.write((level + 1) * indent + 'translation IS translation\n')
@@ -62,23 +93,28 @@ def URDFLink(proto, link, level, parentList, childList, linkList, jointList, sen
         proto.write((' ' if endpoint else level * indent) + 'Solid {\n')
         proto.write((level + 1) * indent + 'translation %lf %lf %lf\n' % (jointPosition[0], jointPosition[1], jointPosition[2]))
         proto.write((level + 1) * indent + 'rotation %lf %lf %lf %lf\n' % (jointRotation[0], jointRotation[1], jointRotation[2], jointRotation[3]))
+
     if dummy:  # case when link not defined but referenced (e.g. Atlas robot)
         pass
     else:
-        for joint in jointList:
+        # for each joint, write the joint element in the proto file
+        for joint in joints:
             if joint.parent == link.name:
                 if not haveChild:
                     haveChild = True
                     proto.write((level + 1) * indent + 'children [\n')
-                URDFJoint(proto, joint, level + 2, parentList, childList,
-                          linkList, jointList, sensorList, boxCollision, normal)
+                URDFJoint(proto, joint, level + 2, parents, children,
+                          links, joints, sensors, boxCollision, normal)
+
+        # write visual element in the proto file
         if link.visual:
             if not haveChild:
                 haveChild = True
                 proto.write((level + 1) * indent + 'children [\n')
-            URDFShape(proto, link, level + 2, normal)
+            URDFShape(proto, link=link, level=level + 2, normal=normal)
 
-        for sensor in sensorList:
+        # for each sensor
+        for sensor in sensors:
             if sensor.parentLink == link.name:
                 if not haveChild:
                     haveChild = True
@@ -90,9 +126,11 @@ def URDFLink(proto, link, level, parentList, childList, linkList, jointList, sen
 
         proto.write((level + 1) * indent + 'name "' + link.name + '"\n')
 
+        # for each collision shape
         if link.collision:
-            URDFBoundingObject(proto, link, level + 1, boxCollision)
+            URDFBoundingObject(proto, link=link, level=level + 1, boxCollision=boxCollision)
 
+        # write physics info (mass, density, inertia)
         proto.write((level + 1) * indent + 'physics Physics {\n')
         proto.write((level + 2) * indent + 'density -1\n')
         proto.write((level + 2) * indent + 'mass %lf\n' % link.inertia.mass)
@@ -101,13 +139,21 @@ def URDFLink(proto, link, level, parentList, childList, linkList, jointList, sen
         proto.write((level + 1) * indent + '}\n')
 
         if link.inertia.rotation[-1] != 0.0:  # this should not happend
-            print('Warning: inertia of %s has a non-zero rotation [axis-angle] = "%lf %lf %lf %lf" but it will not be imported in proto!' % (link.name, link.inertia.rotation[0], link.inertia.rotation[1], link.inertia.rotation[2], link.inertia.rotation[3]))
+            print('Warning: inertia of %s has a non-zero rotation [axis-angle] = "%lf %lf %lf %lf" but it will not be '
+                  'imported in proto!' % (link.name, link.inertia.rotation[0], link.inertia.rotation[1], link.inertia.rotation[2], link.inertia.rotation[3]))
 
     proto.write(level * indent + '}\n')
 
 
 def URDFBoundingObject(proto, link, level, boxCollision):
-    """Write an boundingObject."""
+    """Write a bounding object (collision).
+
+    Args:
+        proto (file): proto file to write the information in.
+        link (Link): link object.
+        level (int): level in the tree.
+        boxCollision (bool): If True, the bounding objects are approximated using boxes.
+    """
     indent = '  '
     boundingLevel = level
     proto.write(level * indent + 'boundingObject ')
@@ -217,7 +263,14 @@ def URDFBoundingObject(proto, link, level, boxCollision):
 
 
 def URDFShape(proto, link, level, normal=False):
-    """Write a Shape."""
+    """Write a Shape.
+
+    Args:
+        proto (file): proto file to write the information in.
+        link (Link): link object.
+        level (int): level in the tree.
+        normal (bool):  If True, the normals are exported if present in the URDF definition.
+    """
     indent = '  '
     shapeLevel = level
     transform = False
@@ -340,17 +393,32 @@ def URDFShape(proto, link, level, normal=False):
             shapeLevel -= 2
 
 
-def URDFJoint(proto, joint, level, parentList, childList, linkList, jointList,
-              sensorList, boxCollision, normal):
-    """Write a Joint iteratively."""
+def URDFJoint(proto, joint, level, parents, children, links, joints, sensors, boxCollision, normal):
+    """Write a Joint iteratively.
+
+    Args:
+        proto (file): proto file to write the information in.
+        joint (Joint): joint object.
+        level (int): level in the tree.
+        parents (list of str): for each joint in :attr:`joints`, its parent joint's name.
+        children (list of str): for each joint in :attr:`joints`, its child joint's name.
+        links (list of Link): list of link objects.
+        joints (list of Joint): list of joint objects.
+        sensors (list of IMU/Camera/Lidar): list of sensor objects.
+        boxCollision (bool): If True, the bounding objects are approximated using boxes.
+        normal (bool): If True, the normals are exported if present in the URDF definition.
+    """
     indent = '  '
     if not joint.axis:
         joint.axis = [1, 0, 0]
     axis = joint.axis
     endpointRotation = joint.rotation
     endpointPosition = joint.position
+
     if joint.rotation[3] != 0.0 and axis:
         axis = math_utils.rotateVector(axis, joint.rotation)
+
+    # revolute joint
     if joint.type == 'revolute' or joint.type == 'continuous':
         proto.write(level * indent + 'HingeJoint {\n')
         proto.write((level + 1) * indent + 'jointParameters HingeJointParameters {\n')
@@ -371,6 +439,8 @@ def URDFJoint(proto, joint, level, parentList, childList, linkList, jointList,
         proto.write((level + 1) * indent + '}\n')
         proto.write((level + 1) * indent + 'device [\n')
         proto.write((level + 2) * indent + 'RotationalMotor {\n')
+
+    # prismatic joint
     elif joint.type == 'prismatic':
         proto.write(level * indent + 'SliderJoint {\n')
         proto.write((level + 1) * indent + 'jointParameters JointParameters {\n')
@@ -391,18 +461,22 @@ def URDFJoint(proto, joint, level, parentList, childList, linkList, jointList,
         proto.write((level + 1) * indent + '}\n')
         proto.write((level + 1) * indent + 'device [\n')
         proto.write((level + 2) * indent + 'LinearMotor {\n')
+
+    # fixed joint
     elif joint.type == 'fixed':
-        for childLink in linkList:
+        for childLink in links:
             if childLink.name == joint.child:
-                URDFLink(proto, childLink, level, parentList, childList,
-                         linkList, jointList, sensorList, joint.position, joint.rotation,
+                URDFLink(proto, childLink, level, parents, children,
+                         links, joints, sensors, joint.position, joint.rotation,
                          boxCollision, normal)
         return
 
+    # floating or planar joint
     elif joint.type == 'floating' or joint.type == 'planar':
         print(joint.type + ' is not a supported joint type in Webots')
         return
 
+    # write joint limit
     proto.write((level + 3) * indent + 'name "' + joint.name + '"\n')
     if joint.limit.velocity != 0.0:
         proto.write((level + 3) * indent + 'maxVelocity ' + str(joint.limit.velocity) + '\n')
@@ -423,17 +497,17 @@ def URDFJoint(proto, joint, level, parentList, childList, linkList, jointList,
 
     proto.write((level + 1) * indent + 'endPoint')
     found_link = False
-    for childLink in linkList:
+    for childLink in links:
         if childLink.name == joint.child:
-            URDFLink(proto, childLink, level + 1, parentList, childList,
-                     linkList, jointList, sensorList, endpointPosition, endpointRotation,
+            URDFLink(proto, childLink, level + 1, parents, children,
+                     links, joints, sensors, endpointPosition, endpointRotation,
                      boxCollision, normal, endpoint=True)
             assert(not found_link)
             found_link = True
     # case that non-existing link cited, set dummy flag
     if not found_link and joint.child:
-        URDFLink(proto, joint.child, level + 1, parentList, childList,
-                 linkList, jointList, sensorList, endpointPosition, endpointRotation,
+        URDFLink(proto, joint.child, level + 1, parents, children,
+                 links, joints, sensors, endpointPosition, endpointRotation,
                  boxCollision, normal, dummy=True)
         print('warning: link ' + joint.child + ' is dummy!')
     proto.write(level * indent + '}\n')
