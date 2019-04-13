@@ -1,12 +1,13 @@
-# urdf2webots [![Build Status](https://travis-ci.org/omichel/urdf2webots.svg?branch=master)](https://travis-ci.org/omichel/urdf2webots)
+# Webots URDF [![Build Status](https://travis-ci.org/omichel/urdf2webots.svg?branch=master)](https://travis-ci.org/omichel/urdf2webots)
 
-This tool converts URDF files into Webots PROTO files.
+This tool converts URDF files into Webots PROTO files, and vice-versa. The code is distributed under the Apache 2.0 License and has been forked from: https://github.com/omichel/urdf2webots
+
 
 ## Install
 
 ```
-git clone https://github.com/omichel/urdf2webots.git
-cd urdf2webots
+git clone https://github.com/robotlearn/webots_urdf
+cd webots_urdf
 pip install -r requirements.txt
 ```
 
